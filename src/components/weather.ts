@@ -1,6 +1,9 @@
 import styled from "styled-components";
 
 export const MainWrapper = styled.div`
+    display: flex;
+    justify-content: center;
+    align-items: center;
     height: 100vh;
     font-family: Monaco, monospace;
     background: linear-gradient(to bottom, rgba(29, 23, 118, 0.8), rgba(166, 47, 204, 0.8));
@@ -20,10 +23,13 @@ export const MainWrapper = styled.div`
         justify-content: space-between;
         align-items: center;
         flex-direction: column;
-        position: absolute;
+        display: flex;
+        width: 400px;
+        height: 100vh;
+    }
 
     .searchContainer {
-        margin-top: 10px;
+        margin-top: 20px;
         display: flex;
         justify-content: space-evenly;
         align-items: center;
@@ -93,6 +99,15 @@ export const MainWrapper = styled.div`
         font-weight: 200;
     }
 
+    .weatherIconContainer h1 {
+        padding-top: 15%;
+        font-size: 2rem;
+    }
+
+    .weatherContainer span {
+        padding-bottom: 10%;
+    }
+
     h1, p, h2 {
         font-size: 20px;
     }
@@ -105,7 +120,7 @@ export const MainWrapper = styled.div`
         display: flex;
         align-items: center;
         justify-content: space-around;
-        margin: 25px;
+        margin: 10px;
         border-radius: 12px;
         padding: 10px;
 
@@ -114,14 +129,21 @@ export const MainWrapper = styled.div`
             text-align: center;
 
             .humidity, .wind {
-                margin-bottom: 10px;
+                margin-bottom: 1em;
+            }
+
+            .humidity {
+                margin-left: 50px;
             }
         }
     }
 
     .humidityPercentage, .windPercentage {
-        margin: 20px; 
+        margin: 1em; 
     }
 
+    .humidity {
+        padding-right: 50px;
+    }
 
 `
