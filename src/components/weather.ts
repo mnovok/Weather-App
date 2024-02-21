@@ -1,10 +1,12 @@
 import styled from "styled-components";
 
 export const MainWrapper = styled.div`
+
     display: flex;
     justify-content: center;
     align-items: center;
     height: 100vh;
+    overflow:auto;
     font-family: Monaco, monospace;
     background: linear-gradient(to bottom, rgba(29, 23, 118, 0.8), rgba(166, 47, 204, 0.8));
 
@@ -25,7 +27,9 @@ export const MainWrapper = styled.div`
         flex-direction: column;
         display: flex;
         width: 400px;
-        height: 100vh;
+        overflow: hidden;
+        max-height: 700px;
+        transition: 0.6s ease-out;
     }
 
     .searchContainer {
@@ -92,6 +96,7 @@ export const MainWrapper = styled.div`
         letter-spacing: 1px;
         color: rgba(232, 220, 238, 0.8);
         font-weight: 200;
+        padding-top: 10px;
     }
 
     h1, p, h2, .windIcon, .humidityIcon {
@@ -132,9 +137,6 @@ export const MainWrapper = styled.div`
                 margin-bottom: 1em;
             }
 
-            .humidity {
-                margin-left: 50px;
-            }
         }
     }
 
@@ -142,8 +144,32 @@ export const MainWrapper = styled.div`
         margin: 1em; 
     }
 
-    .humidity {
-        padding-right: 50px;
+    .humidity, .wind {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
     }
+
+    .loadingIcon {
+        color: rgba(223, 198, 101, 0.8);
+        font-size: 3rem;
+        animation: spin 2s linear infinite;
+        margin-top: 25px;
+    }
+
+    .loading p {
+        font-size: 20px;
+        margin-top: 20px;
+    }
+
+    @keyframes spin {
+        from {
+            transform: rotate(0deg);
+        }
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
 
 `

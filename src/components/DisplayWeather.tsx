@@ -3,6 +3,7 @@ import { MainWrapper } from "./weather";
 import { BsSearch } from "react-icons/bs";
 import { WiHumidity } from "react-icons/wi";
 import { FiWind } from "react-icons/fi";
+import { FiLoader } from "react-icons/fi";
 import axios from "axios";
 import Rainy from "../images/rain.png";
 import Sunny from "../images/day_clear.png";
@@ -33,13 +34,17 @@ const DisplayWeather = () => {
     const API_ENDPOINT = "https://api.openweathermap.org/data/2.5/";
 
     const [weatherData, setWeatherData] = useState<WeatherDataType | null>(null);
+    const [isLoading, setIsLoading] = useState(false); 
 
     const fetchWeather = async (lat:number, lon:number) => {
         const url = `${API_ENDPOINT}weather?lat=${lat}&lon=${lon}&appid=${API_KEY}&units=metric`;
-        console.log(url);
-        const response = await  axios.get(url);
-
-        return response.data;
+        try {
+            const response = await axios.get(url);
+            return response.data;
+        } catch (error) {
+            console.error("Error fetching weather data:", error);
+            throw error;
+        }
     }
 
     useEffect(() => {
@@ -49,6 +54,7 @@ const DisplayWeather = () => {
             Promise.all([fetchWeather(latitude, longitude)]).then(
                 ([currentWeather]) => {
                     setWeatherData(currentWeather);
+                    setIsLoading(true);
                 }
             ) 
         })
@@ -93,7 +99,7 @@ const DisplayWeather = () => {
                 </div>
             </div>
 
-            {weatherData && (
+            {weatherData && isLoading ? (
                 <>
                     <div className="weatherContainer">
                         <h1>{weatherData.name}</h1>
@@ -118,17 +124,21 @@ const DisplayWeather = () => {
                         <div className="wind">
                             <FiWind className="windIcon"/>
                             <div className="windPercentage">
-                                <h1>{weatherData.wind.speed}km/h</h1>
+                                <h1>{Math.round(weatherData.wind.speed)}km/h</h1>
                                 <p>Wind speed</p>
                             </div>
                         </div>
                     </div>
                 </>
-            )}
-
+            ) : (
+                <div className="loading">
+                    <FiLoader className="loadingIcon"/>
+                    <p>Loading</p>
+                </div>
+            )} 
         </div>
     </MainWrapper> 
-    )
-}
+    );
+};
 
 export default DisplayWeather;
