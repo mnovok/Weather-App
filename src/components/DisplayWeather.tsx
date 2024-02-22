@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { MainWrapper } from "./weather";
 import { BsSearch } from "react-icons/bs";
 import { WiHumidity } from "react-icons/wi";
@@ -30,13 +30,15 @@ interface WeatherDataType {
 
 const DisplayWeather = () => {
 
-    const API_KEY = "289a178b4a360cf984d72f2a93e11093";
-    const API_ENDPOINT = "https://api.openweathermap.org/data/2.5/";
+    const API_KEY = process.env.REACT_APP_API_KEY;
+    const API_ENDPOINT = process.env.REACT_APP_API_ENDPOINT;
 
     const [weatherData, setWeatherData] = useState<WeatherDataType | null>(null);
     const [isLoading, setIsLoading] = useState(false); 
+    const [searchCity, setSearchCity] = useState("");
 
-    const fetchWeather = async (lat:number, lon:number) => {
+    //fetch weather data for current location
+    const fetchWeather = useCallback(async (lat:number, lon:number) => {
         const url = `${API_ENDPOINT}weather?lat=${lat}&lon=${lon}&appid=${API_KEY}&units=metric`;
         try {
             const response = await axios.get(url);
@@ -45,21 +47,58 @@ const DisplayWeather = () => {
             console.error("Error fetching weather data:", error);
             throw error;
         }
+    }, [API_ENDPOINT, API_KEY]);
+
+
+    //fetch weather data for a specified city
+    const fetchWeatherData = async (city:string) => {
+        try{
+            const url = `${API_ENDPOINT}weather?q=${city}&appid=${API_KEY}&units=metric`;
+            const searchResponse = await axios.get(url);
+            const currentSearchResponse:WeatherDataType = searchResponse.data;
+
+            return{currentSearchResponse};
+        } catch (error){
+            console.error("No data found");
+            throw error;
+        }
     }
 
+    //search city
+    const handleSearch = async () => {
+        if(searchCity.trim() === ""){
+            return;
+        }
+        try{
+            const {currentSearchResponse} = await fetchWeatherData(searchCity);
+            setWeatherData(currentSearchResponse);
+        } catch (error){
+            console.error("No results found");
+        }
+    }
+
+    //search upon pressing enter
+    const handleEnterKey = (event: React.KeyboardEvent<HTMLInputElement>) => {
+        if (event.key === 'Enter') {
+            handleSearch();
+        }
+    };
+
+    //find user's location, and fetch current location's weather
     useEffect(() => {
-        navigator.geolocation.getCurrentPosition((position) => {
-            const {latitude, longitude} = position.coords;
+        const fetchData = async () => {
+            navigator.geolocation.getCurrentPosition(async (position) => {
+                const {latitude, longitude} = position.coords;
+                const [currentWeather] = await Promise.all([fetchWeather(latitude, longitude)]);
+                    
+                setWeatherData(currentWeather);
+                setIsLoading(true);
+            });
+        };
+        fetchData();
+    }, [fetchWeatherData]);
 
-            Promise.all([fetchWeather(latitude, longitude)]).then(
-                ([currentWeather]) => {
-                    setWeatherData(currentWeather);
-                    setIsLoading(true);
-                }
-            ) 
-        })
-    })
-
+    //change icon based on weather
     const iconChanger = (weather: string) => {
         let iconElement: React.ReactNode;
     
@@ -88,14 +127,19 @@ const DisplayWeather = () => {
         return <span className="weatherIcon">{iconElement}</span>;
     };
     
-
     return(
     <MainWrapper>
         <div className="container">
             <div className="searchContainer">
-                <input type="text" placeholder="Enter a city" />
+                <input type="text" placeholder="Enter a city"
+                 value={searchCity} 
+                 onChange={(e) => setSearchCity(e.target.value)}
+                 onKeyDown={handleEnterKey}
+                 />
                 <div className="searchIconContainer">
-                    <BsSearch className="searchIcon"/>
+                    <BsSearch className="searchIcon"
+                     onClick={handleSearch}
+                    />
                 </div>
             </div>
 
