@@ -36,6 +36,7 @@ const DisplayWeather = () => {
     const [weatherData, setWeatherData] = useState<WeatherDataType | null>(null);
     const [isLoading, setIsLoading] = useState(false); 
     const [searchCity, setSearchCity] = useState("");
+    const [cityNotFound, setCityNotFound] = useState<string | null>(null);
 
     //fetch weather data for current location
     const fetchWeather = useCallback(async (lat:number, lon:number) => {
@@ -49,20 +50,20 @@ const DisplayWeather = () => {
         }
     }, [API_ENDPOINT, API_KEY]);
 
-
     //fetch weather data for a specified city
     const fetchWeatherData = async (city:string) => {
         try{
             const url = `${API_ENDPOINT}weather?q=${city}&appid=${API_KEY}&units=metric`;
             const searchResponse = await axios.get(url);
-            const currentSearchResponse:WeatherDataType = searchResponse.data;
 
-            return{currentSearchResponse};
+            console.log("Search response:", searchResponse.data);
+
+            return searchResponse.data;
         } catch (error){
-            console.error("No data found");
+            console.error("Error fetching weather data:", error);
             throw error;
         }
-    }
+    };
 
     //search city
     const handleSearch = async () => {
@@ -70,10 +71,16 @@ const DisplayWeather = () => {
             return;
         }
         try{
-            const {currentSearchResponse} = await fetchWeatherData(searchCity);
+            const currentSearchResponse = await fetchWeatherData(searchCity);
+
+            console.log("Current search response:", currentSearchResponse); 
+            
             setWeatherData(currentSearchResponse);
+            setCityNotFound(null);
         } catch (error){
-            console.error("No results found");
+            console.error("Error searching for city:", error);
+            setWeatherData(null);
+            setCityNotFound("City not found. Please enter a valid city name.");
         }
     }
 
@@ -83,20 +90,6 @@ const DisplayWeather = () => {
             handleSearch();
         }
     };
-
-    //find user's location, and fetch current location's weather
-    useEffect(() => {
-        const fetchData = async () => {
-            navigator.geolocation.getCurrentPosition(async (position) => {
-                const {latitude, longitude} = position.coords;
-                const [currentWeather] = await Promise.all([fetchWeather(latitude, longitude)]);
-                    
-                setWeatherData(currentWeather);
-                setIsLoading(true);
-            });
-        };
-        fetchData();
-    }, [fetchWeatherData]);
 
     //change icon based on weather
     const iconChanger = (weather: string) => {
@@ -126,6 +119,20 @@ const DisplayWeather = () => {
     
         return <span className="weatherIcon">{iconElement}</span>;
     };
+
+    //find user's location, and fetch current location's weather
+    useEffect(() => {
+        const fetchData = async () => {
+            navigator.geolocation.getCurrentPosition(async (position) => {
+                const {latitude, longitude} = position.coords;
+                const [currentWeather] = await Promise.all([fetchWeather(latitude, longitude)]);
+                        
+                setWeatherData(currentWeather);
+                setIsLoading(true);
+            });
+        };
+        fetchData();
+    }, [fetchWeather]);
     
     return(
     <MainWrapper>
@@ -143,7 +150,12 @@ const DisplayWeather = () => {
                 </div>
             </div>
 
-            {weatherData && isLoading ? (
+            {cityNotFound ? (
+                <div className="loading">
+                    <p>{cityNotFound}</p>
+                </div>    
+            ) : 
+            weatherData && isLoading ? (
                 <>
                     <div className="weatherContainer">
                         <h1>{weatherData.name}</h1>
